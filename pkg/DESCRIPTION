@@ -1,0 +1,17 @@
+Package: anchor
+Type: Package
+Title: Distributional Anchor Regression
+Version: 0.1.0
+Author: Lucas Kook
+Maintainer: Lucas Kook <lucasheinrich.kook@uzh.ch>
+Description: Linear, non-linear and distributional anchor regression for robust
+    prediction in heterogeneous data and under distribution shifts in the test
+    data. Methodology for linear anchor regression follows Rothenhaeusler et al.
+    (2018) <arXiv:1801.06229>. Non-linear anchor regression is described
+    in Buehlmann (2020) <arXiv:1812.08233>. The distributional version of anchor
+    regression was developed by Kook et al. (2021) <arXiv:2101.08224>.
+Depends: tensorflow, keras, ontram
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
