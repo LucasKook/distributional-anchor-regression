@@ -15,6 +15,7 @@ theme_set(theme_pubr())
 # Data --------------------------------------------------------------------
 
 data("BostonHousing2", package = "mlbench")
+nep <- 8e3
 
 # Funs --------------------------------------------------------------------
 
@@ -157,7 +158,7 @@ prs <- c("crim", "zn", "indus", "nox", "rm", "age", "lstat")
 fml <- as.formula(paste("cmedv ~", paste(prs, collapse = "+")))
 mLm <- as.mlt(Lm(fml, data = BostonHousing2, extrapolate = TRUE, 
                  support = supp <- range(BostonHousing2$cmedv), add = c(-5, 0)))
-m0Lm <- Lm(cmedv ~ 1, data = BostonHousing2, extrapolate = TRUE,
+m0Lm <- Lm(cmedv ~ 1, data = BostonHousing2, extrapolate = TRUE, 
            support = supp, add = add <- c(-5, 0))
 dat <- to_list(fml, BostonHousing2)
 dat$A <- model.matrix(~ town, data = BostonHousing2)
@@ -166,7 +167,15 @@ cfxLm <- c(aLm[[1]], aLm[[2]])
 nd <- BostonHousing2[BostonHousing2$town == "Boston Beacon Hill", -6]
 densLm <- pred_dens(mLm, cfxLm, nd)
 
-# c-probit ----------------------------------------------------------------
+mmLm <- as.mlt(Lm(fml, data = BostonHousing2, extrapolate = TRUE, 
+                 support = supp <- range(BostonHousing2$cmedv), add = c(-5, 0)))
+mdat <- to_list(fml, BostonHousing2)
+mdat$A <- model.matrix(~ town, data = BostonHousing2)
+maLm <- Lm_anchor(m0Lm, xi = 0, data = dat)
+mcfxLm <- c(maLm[[1]], maLm[[2]])
+mdensLm <- pred_dens(mmLm, mcfxLm, nd)
+
+# BoxCox ------------------------------------------------------------------
 
 mBC <- as.mlt(BoxCox(fml, data = BostonHousing2, extrapolate = TRUE, 
                      support = supp, add = add))
@@ -176,7 +185,48 @@ aBC <- BoxCox_anchor(m0BC, xi = txi, data = dat)
 cfxBC <- c(aBC[[1]], aBC[[2]])
 densBC <- pred_dens(mBC, cfxBC, nd)
 
-# c-logit -----------------------------------------------------------------
+mmBC <- as.mlt(BoxCox(fml, data = BostonHousing2, extrapolate = TRUE, 
+                      support = supp, add = add))
+maBC <- BoxCox_anchor(m0BC, xi = 0, data = dat)
+mcfxBC <- c(maBC[[1]], maBC[[2]])
+mdensBC <- pred_dens(mmBC, mcfxBC, nd)
+
+# Exact (no) censoring ----------------------------------------------------
+
+mCoc <- Colr(fml, data = BostonHousing2, 
+             add = add,
+             extrapolate = TRUE, support = supp)
+m0Coc <- Colr(cmedv ~ 1, data = BostonHousing2, 
+              add = add,
+              extrapolate = TRUE, support = supp)
+trdat <- tramnet:::.get_tram_data(m0Coc)
+dat$y <- trdat$exact$ay
+dat$yp <- trdat$exact$aypr
+dat$cens <- rep(0, nrow(BostonHousing2))
+
+mbl <- mod_baseline(8L)
+msh <- mod_shift(ncol(dat$X))
+me <- ontram(mod_bl = mbl, mod_sh = msh, x_dim = ncol(dat$X), y_dim = 7L,
+            method = "logit", n_batches = 1, epochs = nep)
+class(me) <- c("colrnn", class(me))
+warm_start(me, mCoc, 6L)
+mhe <- fit_colr_r(me, x_train = dat$X, y_train = dat$y, yp_train = dat$yp,
+                 cens_train = dat$cens, history = FALSE, xi = txi, a_train = dat$A)
+cfxCoc <- coef(mhe, with_baseline = TRUE)
+densCoc <- pred_dens(as.mlt(mCoc), cfxCoc, nd)
+
+mmbl <- mod_baseline(8L)
+mmsh <- mod_shift(ncol(dat$X))
+mme <- ontram(mod_bl = mmbl, mod_sh = mmsh, x_dim = ncol(dat$X), y_dim = 7L,
+            method = "logit", n_batches = 1, epochs = nep)
+class(me) <- c("colrnn", class(me))
+warm_start(mme, mCoc, 6L)
+mmhe <- fit_colr_r(mme, x_train = dat$X, y_train = dat$y, yp_train = dat$yp,
+                 cens_train = dat$cens, history = FALSE, xi = 0, a_train = dat$A)
+mcfxCoc <- coef(mmhe, with_baseline = TRUE)
+mdensCoc <- pred_dens(as.mlt(mCoc), mcfxCoc, nd)
+
+# Right censoring ---------------------------------------------------------
 
 BostonHousing2$cmedvv <- with(BostonHousing2, Surv(cmedv, cmedv != 50))
 fml3 <- as.formula(paste("cmedvv ~", paste(prs, collapse = "+")))
@@ -195,38 +245,66 @@ mbl <- mod_baseline(8L)
 msh <- mod_shift(ncol(dat$X))
 mr <- ontram(mod_bl = mbl, mod_sh = msh, x_dim = ncol(dat$X), y_dim = 7L,
             method = "logit", n_batches = 1, epochs = nep)
-class(m) <- c("colrnn", class(m))
+class(mr) <- c("colrnn", class(mr))
 warm_start(mr, mCocr, 6L)
 mhr <- fit_colr_r(mr, x_train = dat$X, y_train = dat$y, yp_train = dat$yp,
-                 cens_train = dat$cens, history = FALSE, xi = txi, 
-                 a_train = dat$A)
+                 cens_train = dat$cens, history = FALSE, xi = txi, a_train = dat$A)
 cfxCocr <- coef(mhr, with_baseline = TRUE)
 densCocr <- pred_dens(as.mlt(mCocr), cfxCocr, nd)
 
+mmbl <- mod_baseline(8L)
+mmsh <- mod_shift(ncol(dat$X))
+mmr <- ontram(mod_bl = mmbl, mod_sh = mmsh, x_dim = ncol(dat$X), y_dim = 7L,
+            method = "logit", n_batches = 1, epochs = nep)
+class(mr) <- c("colrnn", class(mr))
+warm_start(mmr, mCocr, 6L)
+mmhr <- fit_colr_r(mmr, x_train = dat$X, y_train = dat$y, yp_train = dat$yp,
+                 cens_train = dat$cens, history = FALSE, xi = 0, a_train = dat$A)
+mcfxCocr <- coef(mmhr, with_baseline = TRUE)
+mdensCocr <- pred_dens(as.mlt(mCocr), mcfxCocr, nd)
 
 # Vis ---------------------------------------------------------------------
 
 dLm <- data.frame(cmedv = as.numeric(row.names(densLm)), densLm) %>% 
   gather(key = "obs", value = "dens", X1:X3) %>% 
-  mutate(model = "Lm")
+  mutate(model = "Lm", xi = 10)
+mdLm <- data.frame(cmedv = as.numeric(row.names(mdensLm)), mdensLm) %>% 
+  gather(key = "obs", value = "dens", X1:X3) %>% 
+  mutate(model = "Lm", xi = 0)
 dBC <- data.frame(cmedv = as.numeric(row.names(densBC)), densBC) %>% 
   gather(key = "obs", value = "dens", X1:X3) %>% 
-  mutate(model = "c-probit")
+  mutate(model = "c-probit", xi = 10)
+mdBC <- data.frame(cmedv = as.numeric(row.names(mdensBC)), mdensBC) %>% 
+  gather(key = "obs", value = "dens", X1:X3) %>% 
+  mutate(model = "c-probit", xi = 0)
+dCoc <- data.frame(cmedv = as.numeric(row.names(densCoc)), densCoc) %>%
+  gather(key = "obs", value = "dens", X1:X3) %>%
+  mutate(model = "c-logit (exact)", xi = 10)
+mdCoc <- data.frame(cmedv = as.numeric(row.names(mdensCoc)), mdensCoc) %>%
+  gather(key = "obs", value = "dens", X1:X3) %>%
+  mutate(model = "c-logit (exact)", xi = 0)
 dCocr <- data.frame(cmedv = as.numeric(row.names(densCocr)), densCocr) %>% 
   gather(key = "obs", value = "dens", X1:X3) %>% 
-  mutate(model = "c-logit")
+  mutate(model = "c-logit (censored)", xi = 10)
+mdCocr <- data.frame(cmedv = as.numeric(row.names(mdensCocr)), mdensCocr) %>% 
+  gather(key = "obs", value = "dens", X1:X3) %>% 
+  mutate(model = "c-logit (censored)", xi = 0)
 
-pdat <- full_join(full_join(dLm, dBC), dCocr) %>% 
-  mutate(model = factor(model, levels = c("Lm", "c-probit", "c-logit"),
-                        labels = c("Lm", "c-probit", "c-logit")),
-         obs = factor(obs, levels = c("X1", "X2", "X3"), 
-                      labels = c("Loc 1", "Loc 2", "Loc 3")))
+pdat <- full_join(dLm, dBC) %>% full_join(., dCoc) %>% 
+  full_join(., dCocr) %>% full_join(., mdLm) %>% 
+  full_join(., mdBC) %>% full_join(., mdCocr) %>% full_join(., mdCoc) %>% 
+  mutate(model = factor(model, levels = c("Lm", "c-probit", "c-logit (exact)", "c-logit (censored)"),
+                        labels = c("Lm", "c-probit", "c-logit (exact)", "c-logit (censored)")),
+         obs = factor(obs, levels = c("X1", "X2", "X3"), labels = c("Loc 1", "Loc 2", "Loc 3")))
+pdat2 <- BostonHousing2[BostonHousing2$town == "Boston Beacon Hill", ]
 
-ggplot(pdat, aes(x = cmedv, y = dens, color = model, linetype = obs)) +
+ggplot(pdat, aes(x = cmedv, y = dens, color = ordered(xi), linetype = obs)) +
   geom_line() +
   labs(y = parse(text = "hat(f)[Y*'|'*x](y*'|'*x)")) +
   scale_linetype_discrete(name = element_blank()) +
-  scale_color_discrete(name = element_blank()) +
-  scale_x_continuous(breaks = seq(0, 50, 10))
+  scale_color_viridis_d(name = parse(text = "xi"), option = "C", end = 0.8) +
+  scale_x_continuous(breaks = seq(0, 50, 10)) +
+  facet_wrap(~ model, ncol = 2) +
+  geom_vline(xintercept = 50, data = NULL, lty = 2, color = "gray60")
 
-ggsave("figures/vis-app-bh2-dens.pdf", width = 6, height = 3.5)
+ggsave("figures/vis-app-bh2-dens-revised.eps", width = 7, height = 6)
