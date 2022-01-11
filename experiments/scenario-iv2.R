@@ -39,7 +39,7 @@ make_file_name <- function(bn, parnames, parvals, ext, include_date = FALSE) {
   return(ret)
 }
 
-my_write <- function(obj, fn) {
+csv_write <- function(obj, fn) {
   write.csv(x = obj, file = fn, quote = FALSE, row.names = FALSE)
 }
 
@@ -48,13 +48,13 @@ my_write <- function(obj, fn) {
 setup <- data.frame(
   expand.grid(
     n = 1e3,
-    ncl = 10,
+    ncl = c(4, 6),
     bx = 0.5,
-    ba = c(-1, 0.5, 1, 2),
+    ba = c(0.5, 1, 2),
     bh = 1.5,
     sdxyh = 0.75^2,
     shift = c(0, 1, 1.8, 3),
-    xi = c(0, 1, 10, 100, 1000, 10000)
+    xi = c(0, 1, 10, 1e2, 1e3, 1e4)
   )
 )
 
@@ -63,7 +63,7 @@ ext <- "csv"
 
 # Simulation --------------------------------------------------------------
   
-nsim <- 200
+nsim <- 100
 alps <- (0:10)/10
 
 for (scenario in 1:nrow(setup)) {
@@ -89,12 +89,12 @@ for (scenario in 1:nrow(setup)) {
     # Fit anchor ontram -------------------------------------------------------
     
     m <- ontram_polr(x_dim = ncol(tr$X), y_dim = ncol(tr$Y),
-                     method = "logit", n_batches = 4, epochs = nep <- 200)
+                     method = "logit", n_batches = nb <- 4, epochs = nep <- 200)
     warm_start(m, mt, scen$ncl)
     mh <- fit_ontram_a(m, x_train = tr$X, y_train = tr$Y, history = histo <- FALSE,
                        x_test = te$X, y_test = te$Y, a_train = tr$A, xi = scen$xi)
     mc <- ontram_polr(x_dim = ncol(tr$X), y_dim = ncol(tr$Y),
-                      method = "logit", n_batches = 4, epochs = nep)
+                      method = "logit", n_batches = nb, epochs = nep)
     warm_start(mc, mt, scen$ncl)
     mch <- fit_ontram2(mc, x_train = tr$X, y_train = tr$Y, history = histo,
                        x_test = te$X, y_test = te$Y)
@@ -108,10 +108,10 @@ for (scenario in 1:nrow(setup)) {
     cfx_plain[run] <- coef(mc)
   }
   
-  my_write(ll_anchor, paste0("ll_anchor", "_", fn))
-  my_write(ll_plain, paste0("ll_plain", "_", fn))
-  my_write(cfx_anchor, paste0("cfx_anchor", "_", fn))
-  my_write(cfx_plain, paste0("cfx_plain", "_", fn))
+  csv_write(ll_anchor, paste0("ll_anchor", "_", fn))
+  csv_write(ll_plain, paste0("ll_plain", "_", fn))
+  csv_write(cfx_anchor, paste0("cfx_anchor", "_", fn))
+  csv_write(cfx_plain, paste0("cfx_plain", "_", fn))
   
   qq_anchor <- apply(ll_anchor, 2, quantile, probs = alps, na.rm = TRUE)
   qq_plain <- apply(ll_plain, 2, quantile, probs = alps, na.rm = TRUE)
