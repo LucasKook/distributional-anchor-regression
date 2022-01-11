@@ -261,7 +261,7 @@ for (txi in xis) {
   dBC <- write_loeo(rBC, cnms = prs, mod = paste0("BoxCox-xi", txi))
 }
 
-# c-logit -----------------------------------------------------------------
+# c-logit right -----------------------------------------------------------
 
 BostonHousing2$cmedvv <- with(BostonHousing2, Surv(cmedv, as.numeric(cmedv != 50)))
 
@@ -271,4 +271,14 @@ for (txi in xis) {
   rCocr <- loeo_cv_nn_r(formula = fml3, anchor = "town", data = BostonHousing2, 
                      xi = txi)
   dCocr <- write_loeo(rCocr, cnms = prs, mod = paste0("Colrr-xi", txi))
+}
+
+# c-logit exact -----------------------------------------------------------
+
+fml4 <- as.formula(paste("cmedv ~", paste(prs, collapse = "+")))
+mCoc <- Colr(fml4, data = BostonHousing2)
+for (txi in xis) {
+  rCoce <- loeo_cv_nn_r(formula = fml4, anchor = "town", data = BostonHousing2, 
+                        xi = txi, cens = rep(0, nrow(BostonHousing2)))
+  dCoce <- write_loeo(rCoce, cnms = prs, mod = paste0("Colre-xi", txi))
 }
