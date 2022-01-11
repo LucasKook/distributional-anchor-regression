@@ -34,7 +34,7 @@ qFUN <- function(x, dist) {
 BoxCox_anchor <- function(m0, xi, data) {
   A <- data$A
   dat <- data.frame(y = data$Y, x = data$X)
-  trdat <- tramnet:::.get_tram_data(m0)
+  trdat <- anchor:::.get_tram_data(m0)
   xe <- data$X[trdat$exact$which, , drop = FALSE]
   nth <- trdat$npar
   nobs <- NROW(xe)
