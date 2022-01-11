@@ -17,7 +17,7 @@ theme_set(theme_pubr())
 Lm_anchor <- function(m0, xi, data) {
   A <- data$A
   dat <- data.frame(y = data$Y, x = data$X)
-  trdat <- tramnet:::.get_tram_data(m0)
+  trdat <- anchor:::.get_tram_data(m0)
   xe <- data$X[trdat$exact$which, , drop = FALSE]
   nth <- trdat$npar
   nb <- ncol(data$X)
@@ -118,13 +118,13 @@ gen_dat_iv1 <- function(n = 1000, sdX = 0.75, sdH = 0.75, ba = 0.3,
 nsim <- 100
 res_lin <- anchor_simulation(anchor_model = anchor_regression,
                              plain_model = plain_linear, gammas = rnorm(2),
-                             generate_data = gen_dat_iv1,
-                             gamma = 15, seed = 7, nsim = nsim)
+                             generate_data = generate_data_m2,
+                             gamma = 13, seed = 7, nsim = nsim)
 
 # Write -------------------------------------------------------------------
 
 out1 <- bind_rows(res_lin, .id = "run")
-write.csv(out1, "results/scenario-iv1-lm.csv", quote = FALSE, row.names = FALSE)
+write.csv(out1, "scenario-nla-lm.csv", quote = FALSE, row.names = FALSE)
 
 # Lm ----------------------------------------------------------------------
 
@@ -133,14 +133,14 @@ vlla <- list()
 set.seed(7)
 for (iter in seq_len(nsim)) {
   message(paste0("Iteration ", iter))
-  train_dat <- gen_dat_iv1(shift = FALSE)
-  test_dat <- gen_dat_iv1(n = 2000, shift = TRUE)
+  train_dat <- generate_data_m2(shift = FALSE)
+  test_dat <- generate_data_m2(n = 2000, shift = TRUE)
   A <- train_dat$A
   dat <- data.frame(y = train_dat$Y, x = train_dat$X)
   m0 <- Lm(y ~ 1, data = dat)
   m_plain <- Lm(y ~ ., data = dat)
   class(m_plain) <- c("plain", class(m_plain))
-  m_anchor <- Lm_anchor(m0 = m0, xi = 7, data = train_dat)
+  m_anchor <- Lm_anchor(m0 = m0, xi = 6, data = train_dat)
   vlla[[iter]] <- data.frame(anchor = logLik(m_anchor, newdata = test_dat),
                              plain = logLik(m_plain, newdata = test_dat))
 }
@@ -148,4 +148,4 @@ for (iter in seq_len(nsim)) {
 # Write -------------------------------------------------------------------
 
 out2 <- bind_rows(vlla, .id = "run")
-write.csv(out2, "scenario-iv1-Lma.csv", quote = FALSE, row.names = FALSE)
+write.csv(out2, "scenario-nla-Lma.csv", quote = FALSE, row.names = FALSE)
