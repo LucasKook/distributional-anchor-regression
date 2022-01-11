@@ -86,4 +86,4 @@ for (iter in seq_len(nsim)) {
 # Write -------------------------------------------------------------------
 
 out <- data.frame(anchor = vlla, plain = vllp)
-write.csv(out, "scenario-nla-Lm.csv", quote = FALSE, row.names = FALSE)
+write.csv(out, "scenario-nla.csv", quote = FALSE, row.names = FALSE)
