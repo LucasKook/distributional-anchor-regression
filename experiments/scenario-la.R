@@ -57,15 +57,16 @@ logLik.plain <- function(obj, newdata = NULL) {
 
 # Simulation --------------------------------------------------------------
 
+nsim <- 100
 res_lin <- anchor_simulation(anchor_model = anchor_regression,
                              plain_model = plain_linear, gammas = rnorm(2),
                              generate_data = generate_data_lin,
-                             gamma = 7, shift_strength = sqrt(10), sdx = 1,
-                             seed = 7, nsim = 100)
+                             gamma = 13, shift_strength = sqrt(10), sdx = 1,
+                             seed = 7, nsim = nsim)
 
 # Write -------------------------------------------------------------------
 
-out1 <- do.call("cbind", res_lin)
+out1 <- dplyr::bind_rows(res_lin, .id = "run")
 write.csv(out1, "scenario-la-lin.csv", quote = FALSE, row.names = FALSE)
 
 # Lm ----------------------------------------------------------------------
