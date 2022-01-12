@@ -5,7 +5,8 @@
 # Dependencies ------------------------------------------------------------
 
 library(anchor)
-library(tram) # also {trtf} needed
+library(tram)
+library(trtf)
 library(CVXR)
 library(tidyverse)
 library(ggpubr)
@@ -147,14 +148,14 @@ for (iter in seq_len(nsim)) {
   ppr <- as.vector(trtf:::.R2vec(predict(as.mlt(m_plain), newdata = nd,
                                          type = "quantile", p = 0.5)))
   ppreds <- abs(ppr - nd$y)
-  cfxp[iter] <- coef(m_plain)
+  cfxp[[iter]] <- coef(m_plain)
   pboost <- plain_lmrf(train_dat)
   bpr <- as.vector(evaluate(pboost, newdata = test_dat$X, target = test_dat$Y)$ape)
   for (xi in xis) {
     xidx <- which(xi == xis)
     m_anchor <- BoxCox_anchor(m0 = m0, xi = xi, data = train_dat)
     vlla <- logLik(m_anchor, m0 = m0, newdata = test_dat)
-    cfxa[iter] <- m_anchor[[2]]
+    cfxa[[iter]] <- m_anchor[[2]]
     mpp <- as.mlt(m_plain)
     cfa <- c(m_anchor[[1]], m_anchor[[2]])
     names(cfa) <- names(coef(mpp))
@@ -176,4 +177,4 @@ for (iter in seq_len(nsim)) {
 # Write -------------------------------------------------------------------
 
 out1 <- dplyr::bind_rows(out)
-write.csv(out1, "results/nla/scenario-nla-boosting.csv", row.names = FALSE, quote = FALSE)
+# write.csv(out1, "results/nla/scenario-nla-boosting.csv", row.names = FALSE, quote = FALSE)
