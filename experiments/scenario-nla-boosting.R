@@ -127,6 +127,7 @@ gen_dat_iv1 <- function(n = 1000, sdX = 0.75, sdH = 0.75, ba = 0.3,
 
 nsim <- 100
 ntr <- 300
+nte <- 2000
 xis <- 6
 out <- list()
 cfxp <- cfxa <- list()
