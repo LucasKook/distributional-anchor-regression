@@ -11,17 +11,13 @@ theme_set(theme_pubr())
 data("BostonHousing2", package = "mlbench")
 
 bpath <- "results/app-bh2"
-mlabs <- c("Lm", "c*'-'*probit", "c*'-'*logiti", "c*'-'*logit~exact", 
-           "c*'-'*logit~censored")
+mlabs <- c("Lm", "c*'-'*probit", "c*'-'*logiti", "c*'-'*logit~exact", "c*'-'*logit~censored")
 
-# Read --------------------------------------------------------------------
-
-cfs <- data.frame(path = list.files(bpath, pattern = "cfx")) %>% 
-  separate(path, into = c("app", "bh", "mod", "xi", "cfx"), sep = "-", 
-           remove = FALSE) %>% 
+cfs <- data.frame(path = list.files(bpath, pattern = "cfx", full.names = TRUE)) %>% 
+  separate(path, into = c("pt", "app", "bh", "mod", "xi", "cfx"), sep = "-", remove = FALSE) %>% 
   separate(xi, into = c("parm", "xi"), sep = "xi") %>% 
-  select(-app, -bh, -parm, -cfx) %>% 
-  mutate(dat = lapply(paste0(bpath, path), read.csv)) %>% 
+  select(-pt, -app, -bh, -parm, -cfx) %>% 
+  mutate(dat = lapply(path, read.csv)) %>% 
   unnest(dat) %>% 
   gather("predictor", "estimate", crim:lstat) %>% 
   mutate(mod = factor(mod, levels = c("Lm", "BoxCox", "Colr", "Colre", "Colrr"), 
@@ -29,25 +25,30 @@ cfs <- data.frame(path = list.files(bpath, pattern = "cfx")) %>%
          xi = factor(xi, levels = c(0, 10^(0:4)), labels = c("-infinity", 0:4)),
          estimate = ifelse(str_detect(mod, "logit"), -estimate, estimate))
 
+sds <- BostonHousing2 %>% 
+  summarize_at(unique(cfs$predictor), sd) %>% 
+  gather("predictor", "sd")
+
+cfs <- full_join(cfs, sds) %>% 
+  mutate(scaled_estimate = estimate * sd)
+
 p1 <- cfs %>% 
-  filter(model == "anchor", predictor %in% c("indus", "lstat", "nox", "rm"),
-         mod != mlabs[3]) %>% 
-  ggplot(aes(x = predictor, y = estimate, color = xi)) +
+  filter(model == "anchor", predictor %in% c("indus", "lstat", "nox", "rm"), mod != mlabs[3]) %>% 
+  ggplot(aes(x = predictor, y = scaled_estimate, color = xi)) +
   geom_hline(aes(yintercept = 0), col = "gray65", lty = 2) +
   geom_boxplot(outlier.size = rel(0.5)) +
   facet_grid(~ mod, labeller = label_parsed) + 
-  scale_color_viridis_d(name = parse(text = "log[10]~xi"),
+  scale_color_viridis_d(name = parse(text = "log[10]~xi"), 
                         labels = parse(text = levels(cfs$xi))) +
   theme(text = element_text(size = 12)) +
-  labs(y = expression(hat(beta)[CV]), x = element_blank()) + 
+  labs(y = expression(scaled~hat(beta)[CV]), x = element_blank()) + 
   guides(color = guide_legend(nrow = 1))
 
-lls <- data.frame(path = list.files(bpath, pattern = "logLik")) %>% 
-  separate(path, into = c("app", "bh", "mod", "xi", "cfx"), sep = "-",
-           remove = FALSE) %>% 
+lls <- data.frame(path = list.files(bpath, pattern = "logLik", full.names = TRUE)) %>% 
+  separate(path, into = c("pt", "app", "bh", "mod", "xi", "cfx"), sep = "-", remove = FALSE) %>% 
   separate(xi, into = c("parm", "xi"), sep = "xi") %>% 
-  select(-app, -bh, -parm, -cfx) %>% 
-  mutate(dat = lapply(paste0(bpath, path), function(x) {
+  select(-pt, -app, -bh, -parm, -cfx) %>% 
+  mutate(dat = lapply(path, function(x) {
     tmp <- read.csv(x)
     tmp$env <- levels(BostonHousing2$town)
     tmp
@@ -71,8 +72,7 @@ p2 <- lls %>%
   labs(x = expression(log[10]~xi), y = expression(NLL[CV])) +
   theme(text = element_text(size = 12)) +
   scale_x_discrete(labels = parse(text = levels(lls$xi))) +
-  scale_color_viridis_d(name = parse(text = "log[10]~xi"),
-                        labels = parse(text = levels(cfs$xi))) +
+  scale_color_viridis_d(name = parse(text = "log[10]~xi"), labels = parse(text = levels(cfs$xi))) +
   geom_path(aes(group = env), data = outliers, lwd = 0.5) +
   ggrepel::geom_text_repel(aes(label = env),
                            data = outliers %>% filter(xi == "-infinity"),
@@ -80,7 +80,6 @@ p2 <- lls %>%
                            cex = 2.8, color = "black") +
   guides(color = guide_legend(nrow = 1))
         
-
 ggarrange(p2 + labs(tag = "a"), p1 + labs(tag = "b"), ncol = 1, align = "v",
           common.legend = TRUE, legend = "top")
 
