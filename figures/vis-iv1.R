@@ -9,7 +9,7 @@ library(ggpubr)
 library(patchwork)
 theme_set(theme_pubr())
 
-bpath <- "results"
+bpath <- "results/iv1"
 xilabs <- c("-infinity", round(log10(c(1, 3, 7, 1000, 10000)), 2))
 
 # Read results ------------------------------------------------------------

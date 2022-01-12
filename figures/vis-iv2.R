@@ -10,7 +10,7 @@ library(patchwork)
 theme_set(theme_pubr())
 
 Kwhich <- "K==10"
-bpath <- "results/iv2/" 
+bpath <- "results/iv2/"
 
 # Read coefs --------------------------------------------------------------
 

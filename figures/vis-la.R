@@ -11,10 +11,10 @@ theme_set(theme_pubr())
 
 # Read results ------------------------------------------------------------
 
-res_lm <- read.csv("results/scenario-la-lin.csv") %>% 
+res_lm <- read.csv("results/la/scenario-la-lin.csv") %>% 
   gather(key = "model", value = "ape", ape_anchor:ape_plain) %>% 
   separate(model, into = c("jnk", "model"), sep = "_")
-res_Lm <- read.csv("results/scenario-la-Lm.csv") %>%
+res_Lm <- read.csv("results/la/scenario-la-Lm.csv") %>%
   gather(key = "model.run", value = "logLik") %>% 
   separate(model.run, into = c("model", "run"), sep = "\\.")
 

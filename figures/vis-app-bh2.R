@@ -10,9 +10,11 @@ library(patchwork)
 theme_set(theme_pubr())
 data("BostonHousing2", package = "mlbench")
 
-bpath <- "results"
+bpath <- "results/app-bh2"
 mlabs <- c("Lm", "c*'-'*probit", "c*'-'*logiti", "c*'-'*logit~exact", 
            "c*'-'*logit~censored")
+
+# Read --------------------------------------------------------------------
 
 cfs <- data.frame(path = list.files(bpath, pattern = "cfx")) %>% 
   separate(path, into = c("app", "bh", "mod", "xi", "cfx"), sep = "-", 

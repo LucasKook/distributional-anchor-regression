@@ -9,7 +9,7 @@ library(ggpubr)
 library(patchwork)
 theme_set(theme_pubr())
 
-bpath <- "results/iv2-K46/" 
+bpath <- "results/iv2-K46" 
 
 # Read coefs --------------------------------------------------------------
 
