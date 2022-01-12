@@ -21,6 +21,16 @@ evaluate.default <- function(mod, newdata, target) {
   return(ret)
 }
 
+#' @method evaluate keras.engine.sequential.Sequential
+#' @export
+evaluate.keras.engine.sequential.Sequential <- function(mod, newdata, target) {
+  predicted <- mod(newdata)$numpy()
+  ape <- abs(target - predicted)
+  mse <- mean((target - predicted)^2)
+  ret <- list(ape = ape, mse = mse)
+  return(ret)
+}
+
 # Simple linear anchor regression scenario from Buehlmann (2018)
 #' @export
 generate_data_lin <- function(n = 300, r = 2, q = 1, p = 10,
@@ -104,30 +114,23 @@ anchor_simulation <- function(nsim = 100, alps = seq(0, 1, length.out = 11),
                               gammas = rep(1, r), shift_strength = NULL,
                               generate_data = generate_data_m2,
                               anchor_model, plain_model, seed = NULL, ...) {
-  ape_anchor <- ape_plain <- c()
-  mse_anchor <- mse_plain <- c()
+  ape_anchor <- list()
   if (!is.null(seed))
     set.seed(seed)
   for (iter in seq_len(nsim)) {
     message(paste0("Iteration ", iter))
-    train_dat <- generate_data(n = n, r = r, q = q, p = p, gammas = gammas,
-                               shift = FALSE)
-    test_dat <- generate_data(n = nout, r = r, q = q, p = p, shift = TRUE,
-                              gammas = gammas, shift_strength = shift_strength)
+    train_dat <- generate_data(n = n, r = r, q = q, p = p,
+                               gammas = gammas, shift = FALSE)
+    test_dat <- generate_data(n = nout, r = r, q = q, p = p,
+                              shift = TRUE, gammas = gammas, shift_strength = shift_strength)
     mod_anchor <- anchor_model(data = train_dat, ...)
     mod_plain <- plain_model(data = train_dat, ...)
     met_anchor <- evaluate(mod = mod_anchor, newdata = test_dat$X,
                            target = test_dat$Y)
     met_plain <- evaluate(mod = mod_plain, newdata = test_dat$X,
                           target = test_dat$Y)
-    q_anchor <- quantile(met_anchor$ape, probs = alps)
-    q_plain <- quantile(met_plain$ape, probs = alps)
-    ape_anchor <- cbind(ape_anchor, q_anchor)
-    ape_plain <- cbind(ape_plain, q_plain)
-    mse_anchor <- c(mse_anchor, met_anchor$mse)
-    mse_plain <- c(mse_plain, met_plain$mse)
+    ape_anchor[[iter]] <- data.frame(ape_anchor = met_anchor$ape,
+                                     ape_plain = met_plain$ape)
   }
-  mean_ape_anchor <- apply(ape_anchor, 1, mean)
-  mean_ape_plain <- apply(ape_plain, 1, mean)
-  return(list(mean_ape_anchor = mean_ape_anchor, mean_ape_plain = mean_ape_plain))
+  return(ape_anchor)
 }
