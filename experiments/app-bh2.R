@@ -159,7 +159,7 @@ loeo_cv <- function(formula = fml, anchor = "town", data = BostonHousing2,
               ll_plain = ll_plain, ll_anchor = ll_anchor))
 }
 
-write_loeo <- function(res, nm = "app-bh2", cnms, mod) {
+write_loeo <- function(res, nm = "results/app-bh2", cnms, mod) {
   cfx <- data.frame(rbind(res$cfx_plain, res$cfx_anchor))
   cfx$model = rep(c("plain", "anchor"), each = nrow(cfx) / 2)
   colnames(cfx) <- c(cnms, "model")

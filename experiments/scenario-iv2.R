@@ -108,10 +108,10 @@ for (scenario in 1:nrow(setup)) {
     cfx_plain[run] <- coef(mc)
   }
   
-  csv_write(ll_anchor, paste0("ll_anchor", "_", fn))
-  csv_write(ll_plain, paste0("ll_plain", "_", fn))
-  csv_write(cfx_anchor, paste0("cfx_anchor", "_", fn))
-  csv_write(cfx_plain, paste0("cfx_plain", "_", fn))
+  csv_write(ll_anchor, paste0("results/ll_anchor", "_", fn))
+  csv_write(ll_plain, paste0("results/ll_plain", "_", fn))
+  csv_write(cfx_anchor, paste0("results/cfx_anchor", "_", fn))
+  csv_write(cfx_plain, paste0("results/cfx_plain", "_", fn))
   
   qq_anchor <- apply(ll_anchor, 2, quantile, probs = alps, na.rm = TRUE)
   qq_plain <- apply(ll_plain, 2, quantile, probs = alps, na.rm = TRUE)
