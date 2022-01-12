@@ -124,7 +124,7 @@ res_lin <- anchor_simulation(anchor_model = anchor_regression,
 # Write -------------------------------------------------------------------
 
 out1 <- bind_rows(res_lin, .id = "run")
-write.csv(out1, "results/scenario-nla-lm.csv", quote = FALSE, row.names = FALSE)
+write.csv(out1, "results/nla/scenario-nla-lm.csv", quote = FALSE, row.names = FALSE)
 
 # Lm ----------------------------------------------------------------------
 
@@ -148,4 +148,4 @@ for (iter in seq_len(nsim)) {
 # Write -------------------------------------------------------------------
 
 out2 <- bind_rows(vlla, .id = "run")
-write.csv(out2, "results/scenario-nla-Lma.csv", quote = FALSE, row.names = FALSE)
+write.csv(out2, "results/nla/scenario-nla-Lma.csv", quote = FALSE, row.names = FALSE)

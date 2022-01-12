@@ -175,4 +175,4 @@ for (iter in seq_len(nsim)) {
 # Write -------------------------------------------------------------------
 
 out1 <- dplyr::bind_rows(out)
-write.csv(out1, "results/scenario-nla-boosting.csv", row.names = FALSE, quote = FALSE)
+write.csv(out1, "results/nla/scenario-nla-boosting.csv", row.names = FALSE, quote = FALSE)
