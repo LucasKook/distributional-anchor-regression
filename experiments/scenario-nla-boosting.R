@@ -87,43 +87,6 @@ logLik.plain <- function(obj, newdata = NULL) {
   }
 }
 
-gen_dat_iv1 <- function(n = 1000, sdX = 0.75, sdH = 0.75, ba = 0.3,
-                        bh = 0.6, ord = 6, bx = cfs <- 0.3, perturb = FALSE,
-                        shift = 12) {
-  epsX <- rnorm(n, sd = sdX)
-  H <- rnorm(n, sd = sdH)
- 
-  if (!perturb) {
-    A <- ifelse(runif(n) <= 0.5, -1, 1)
-  } else {
-    A <- shift
-  }
-  
-  X <- ba * A + bh * H + epsX
-  
-  pY <- function(x) pchisq(x, df = 3)
-  qY <- function(p) qchisq(p, df = 3)
-  
-  supp <- qY(c(1e-12, 1 - 1e-12))
-  add <- c(-1, 1) * 5
-  distr <- "Normal"
-  
-  xx <- seq(from = supp[1], to = supp[2], length.out = ord + 1)
-  bl_cfx <- qFUN(pY(xx), dist = distr)
-  cfs <- c(bx, # X
-           bh) # H
-  
-  dat <- data.frame(X1 = X, X2 = H)
-  
-  simm <- from(distr, 2, dat, c(bl_cfx, cfs), ord, supp, add)
-  Y <- trtf:::.R2vec(simulate(simm, newdata = dat))
-  ret <- list(Y = matrix(Y, ncol = 1),
-              X = matrix(X, ncol = 1),
-              H = matrix(H, ncol = 1),
-              A = matrix(A, ncol = 1))
-  return(ret)
-}
-
 # Sim ---------------------------------------------------------------------
 
 nsim <- 100
@@ -142,11 +105,11 @@ for (iter in seq_len(nsim)) {
   dat <- data.frame(y = train_dat$Y, x = train_dat$X)
   nd <- data.frame(y = test_dat$Y, x = test_dat$X)
   m0 <- BoxCox(y ~ 1, data = dat)
-  m_plain <- BoxCox(y ~ ., data = dat)
+  m_plain <- BoxCox(y ~ ., data = dat, supp = range(dat$y, nd$y))
   class(m_plain) <- c("plain", class(m_plain))
   vllp <- logLik(m_plain, newdata = test_dat)
   ppr <- as.vector(trtf:::.R2vec(predict(as.mlt(m_plain), newdata = nd,
-                                         type = "quantile", p = 0.5)))
+                                         type = "quantile", prob = 0.5)))
   ppreds <- abs(ppr - nd$y)
   cfxp[[iter]] <- coef(m_plain)
   pboost <- plain_lmrf(train_dat)
@@ -161,7 +124,7 @@ for (iter in seq_len(nsim)) {
     names(cfa) <- names(coef(mpp))
     coef(mpp) <- cfa
     ppa <- as.vector(trtf:::.R2vec(predict(mpp, newdata = nd, 
-                                           type = "quantile", p = 0.5)))
+                                           type = "quantile", prob = 0.5)))
     apreds <- abs(ppa - nd$y)
     aboost <- anchor_boosting(lmrf_base_learner, train_dat, mstop = 50, 
                               gamma = 2 * xi + 1, nu = 0.01)
