@@ -10,7 +10,7 @@ library(patchwork)
 theme_set(theme_pubr())
 data("BostonHousing2", package = "mlbench")
 
-bpath <- "results/app-bh2-revision/"
+bpath <- "results"
 mlabs <- c("Lm", "c*'-'*probit", "c*'-'*logiti", "c*'-'*logit~exact", 
            "c*'-'*logit~censored")
 

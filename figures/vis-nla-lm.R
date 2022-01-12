@@ -12,11 +12,11 @@ theme_set(theme_pubr())
 # Read --------------------------------------------------------------------
 
 # Mis-specified lm/Lm results
-out1 <- read_csv("scenario-nla-lm.csv")
-out2 <- read_csv("scenario-nla-Lma.csv")
+out1 <- read_csv("results/scenario-nla-lm.csv")
+out2 <- read_csv("results/scenario-nla-Lma.csv")
 
 # Anchor cprobit results
-res_cprobit <- read.csv("scenario-nla.csv") %>%
+res_cprobit <- read.csv("results/scenario-nla.csv") %>%
   gather(key = "model.run", value = "logLik") %>% 
   separate(model.run, into = c("model", "run"), sep = "\\.")
 

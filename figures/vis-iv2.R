@@ -11,7 +11,7 @@ theme_set(theme_pubr())
 
 # Read coefs --------------------------------------------------------------
 
-bpath <- "../experiments/"
+bpath <- "results"
 
 cfx_files <- 
   data.frame(files = list.files(bpath, pattern = "cfx"), stringsAsFactors = FALSE)

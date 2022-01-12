@@ -11,7 +11,7 @@ theme_set(theme_pubr())
 
 # Read results ------------------------------------------------------------
 
-res_Lm <- read.csv("scenario-nla.csv") %>%
+res_Lm <- read.csv("results/scenario-nla.csv") %>%
   gather(key = "model.run", value = "logLik") %>% 
   separate(model.run, into = c("model", "run"), sep = "\\.")
 

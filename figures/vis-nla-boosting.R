@@ -11,7 +11,7 @@ theme_set(theme_pubr())
 
 # Read --------------------------------------------------------------------
 
-out <- read_csv("nla-boosting/scenario-nla-boosting.csv")
+out <- read_csv("results/scenario-nla-boosting.csv")
 
 out1 <- out %>% 
   gather("tmp", "val", -1) %>% 
