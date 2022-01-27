@@ -1,4 +1,4 @@
-#' anchor logLik colr exact right
+#' Penalized log-likelihood for the c-logit model
 #' @examples
 #' library(tram)
 #' library(survival)
@@ -216,7 +216,7 @@ colr_gradient_r <- function(x_train, y_train, yp_train, cens_train, model,
   }
 }
 
-#' Function for predicting cdf, pdf and class and compute logLik
+#' Out-of-sample logLik for the c-logit model
 #' @method logLik colrnn_r
 #' @export
 logLik.colrnn_r <- function(model, x = NULL, y, yp, cens, im = NULL, indiv = FALSE) {
@@ -242,15 +242,12 @@ logLik.colrnn_r <- function(model, x = NULL, y, yp, cens, im = NULL, indiv = FAL
 gamma_to_theta_colr <- function(gammas) {
   grows <- as.integer(nrow(gammas))
   gcols <- as.integer(ncol(gammas))
-  # if (gcols == 1L)
-  # return(gammas)
   theta1 <- k_reshape(gammas[, 1L], shape = c(grows, 1L))
   thetas <- k_exp(k_reshape(gammas[, 2L:gcols], shape = c(grows, gcols - 1L)))
   ret <- k_concatenate(c(theta1, theta1 + tf$math$cumsum(thetas, axis = 1L)), axis = 0L)
   return(ret)
 }
 
-# not very elegant, look for different solution
 .batch_subset <- function(obj, idx, dim) {
   ndim <- length(dim)
   if (ndim == 2L) {
