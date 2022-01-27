@@ -2,7 +2,7 @@
 % Please edit documentation in R/colr-anchor-exact-right.R
 \name{colr_loss_r}
 \alias{colr_loss_r}
-\title{anchor logLik colr exact right}
+\title{Penalized log-likelihood for the c-logit model}
 \usage{
 colr_loss_r(
   gammas,
@@ -18,7 +18,7 @@ colr_loss_r(
 )
 }
 \description{
-anchor logLik colr exact right
+Penalized log-likelihood for the c-logit model
 }
 \examples{
 library(tram)

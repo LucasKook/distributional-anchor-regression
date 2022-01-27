@@ -2,10 +2,10 @@
 % Please edit documentation in R/colr-anchor-exact-right.R
 \name{logLik.colrnn_r}
 \alias{logLik.colrnn_r}
-\title{Function for predicting cdf, pdf and class and compute logLik}
+\title{Out-of-sample logLik for the c-logit model}
 \usage{
 \method{logLik}{colrnn_r}(model, x = NULL, y, yp, cens, im = NULL, indiv = FALSE)
 }
 \description{
-Function for predicting cdf, pdf and class and compute logLik
+Out-of-sample logLik for the c-logit model
 }

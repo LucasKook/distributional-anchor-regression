@@ -10,7 +10,7 @@ Description: Linear, non-linear and distributional anchor regression for robust
     (2018) <arXiv:1801.06229>. Non-linear anchor regression is described
     in Buehlmann (2020) <arXiv:1812.08233>. The distributional version of anchor
     regression was developed by Kook et al. (2021) <arXiv:2101.08224>.
-Depends: tensorflow, keras, ontram
+Depends: tensorflow, keras, ontram, CVXR
 License: GPL-2
 Encoding: UTF-8
 RoxygenNote: 7.1.2
