@@ -2,6 +2,13 @@
 
 Repository accompanying [arXiv:2101.08224](https://arxiv.org/abs/2101.08224)
 
+# New R implementation
+
+A more flexible and user-friendly R implementation of distributional anchor
+regression is now available in [dare](https://github.com/LucasKook/dare.git).
+
+# Reproducibility
+
 To be able to run the experiments, please install the `anchor` package
 via
 
